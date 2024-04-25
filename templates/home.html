@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Guarded Summarizer</title>
+  </head>
+  <body>
+    <h1>Guarded Summarizer</h1>
+    <form method="GET" action="{{ url_for('summary') }}">
+      <label>
+        <input type="text" name="url" placeholder="Enter a url to summarize" />
+      </label>
+      <input type="submit" value="Summarize" />
+    </form>
+  </body>
+</html>
