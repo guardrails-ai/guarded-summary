@@ -1,20 +1,20 @@
 from flask import Flask, render_template, request
 import urllib.request
 import html2text
-import openai
 from dotenv import load_dotenv
 from litellm import completion
+
+from guardrails import Guard
+from guardrails.hub import (
+    NSFWText,
+    ProfanityFree, PolitenessCheck
+)
 
 load_dotenv()
 
 app = Flask(__name__)
 h = html2text.HTML2Text()
 h.ignore_links = True
-
-from guardrails import Guard
-from guardrails.hub import (
-    NSFWText,
-)
 
 def groq(input, *args, **kwargs) -> str:
     result = completion(
@@ -42,15 +42,15 @@ def summary():
     
     content = h.handle(html_content)
     # use guardrails to prevent abuse
-    guard = Guard().use(
-        NSFWText(),
+    guard = Guard().use_many(
+        NSFWText(on_fail='exception'),
+        PolitenessCheck(on_fail='exception'),
+        ProfanityFree(on_fail='exception'),
     )
 
-    guard.validate(content)
     validated_output, *rest = guard(
         llm_api=groq,
         prompt=f"Here is the text of an article. Please summarize it for me. {content}"
     )
-    print(validated_output)
 
     return render_template('summary.html', url=url, summary=validated_output)
