@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request
+import litellm
 import urllib.request
 import html2text
 from dotenv import load_dotenv
-from litellm import completion
-
 from guardrails import Guard
 from guardrails.hub import (
     NSFWText,
@@ -15,13 +14,6 @@ load_dotenv()
 app = Flask(__name__)
 h = html2text.HTML2Text()
 h.ignore_links = True
-
-def groq(input, *args, **kwargs) -> str:
-    result = completion(
-        model="groq/llama3-8b-8192",
-        messages=[{"role": "user", "content": input}],
-    )
-    return result.choices[0].message.content
 
 
 # index will show an input for user to enter a url
@@ -49,7 +41,9 @@ def summary():
     )
 
     validated_output, *rest = guard(
-        llm_api=groq,
+        llm_api=litellm.completion,
+        model="groq/llama3-8b-8192",
+        messages=[{"role": "user", "content": input}],
         prompt=f"Here is the text of an article. Please summarize it for me. {content}"
     )
 
